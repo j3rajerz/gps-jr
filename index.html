@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>نرم افزار نقشه برداری GPS</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.14.3/dist/leaflet-geoman.css" />
@@ -531,6 +531,21 @@
         }
 
         #toast { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--primary-color); z-index: 4000; display: none; box-shadow: 0 0 12px var(--glow-color); }
+        
+        .btn-ready {
+            background: linear-gradient(to bottom, #e62e00, #b32400) !important; /* Red gradient */
+            color: #fff !important;
+            box-shadow: 0 0 15px rgba(255, 46, 0, 0.7) !important;
+        }
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1214,9 +1229,11 @@ function addPolygonPermanent(coords) {
         
         // تولید خروجی نهایی برای چاپ - نسخه اصلاح شده
         async function generatePrintView() {
+            const printRoot = document.getElementById('print-output');
             try {
-                // نمایش خروجی چاپ برای استفاده در window.print
-                const printRoot = document.getElementById('print-output');
+                // نمایش خروجی چاپ برای استفاده در window.print (به صورت مخفی)
+                printRoot.style.position = 'absolute';
+                printRoot.style.left = '-9999px';
                 printRoot.style.display = 'block';
 
                 // پر کردن اطلاعات فرم در قالب جدید
@@ -1278,6 +1295,11 @@ function addPolygonPermanent(coords) {
             } catch (err) {
                 console.error(err);
                 showToast('خطا در آماده‌سازی خروجی');
+            } finally {
+                // همیشه کانتینر چاپ را مخفی کن
+                printRoot.style.display = 'none';
+                printRoot.style.position = '';
+                printRoot.style.left = '';
             }
         }
         
@@ -1566,11 +1588,13 @@ EOF
             
             // دکمه بررسی
             document.getElementById('review-data').addEventListener('click', function() {
+                document.body.classList.add('modal-open');
                 document.getElementById('data-modal').style.display = 'flex';
             });
             
             // دکمه تنظیمات
             document.getElementById('settings').addEventListener('click', function() {
+                document.body.classList.add('modal-open');
                 document.getElementById('settings-modal').style.display = 'flex';
                 renderSavedMapsList();
             });
@@ -1601,6 +1625,7 @@ EOF
             document.querySelectorAll('.close-modal').forEach(button => {
                 button.addEventListener('click', function() {
                     this.closest('.modal').style.display = 'none';
+                    document.body.classList.remove('modal-open');
                 });
             });
             
@@ -1608,8 +1633,52 @@ EOF
             document.getElementById('map-data-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 document.getElementById('data-modal').style.display = 'none';
+                document.body.classList.remove('modal-open');
+                
+                showToast('در حال تولید خروجی، لطفا صبر کنید...');
                 await generatePrintView();
+                
                 this.reset();
+                
+                // Hide the main map interface
+                document.querySelector('.map-container').style.display = 'none';
+                document.querySelector('.mobile-ui-container').style.display = 'none';
+
+                // Create and show a success/download view
+                let resultPage = document.getElementById('result-page');
+                if (!resultPage) {
+                    resultPage = document.createElement('div');
+                    resultPage.id = 'result-page';
+                    resultPage.style.cssText = `
+                        position: fixed; top: 0; left: 0; width: 100%; height: 100dvh;
+                        background: var(--dark-bg); z-index: 1000;
+                        display: flex; flex-direction: column; justify-content: center;
+                        align-items: center; text-align: center; padding: 20px;
+                    `;
+                    document.querySelector('.main-content').appendChild(resultPage);
+                }
+
+                resultPage.innerHTML = `
+                    <h2 style="color: var(--primary-color); font-size: 1.8rem; margin-bottom: 20px;">خروجی آماده است</h2>
+                    <p style="margin-bottom: 30px;">نقشه با موفقیت تولید شد. می‌توانید آن را دانلود کنید یا یک نقشه جدید شروع کنید.</p>
+                    <a href="${lastGeneratedDataUrl}" download="نقشه_A4.png" class="btn btn-ready" style="min-width: 220px; margin-bottom: 15px; display: inline-flex; justify-content: center; align-items: center; gap: 10px;">
+                        <i class="fas fa-download"></i> <span>دانلود نقشه</span>
+                    </a>
+                    <button id="restart-map-btn" class="btn btn-secondary" style="min-width: 220px;">شروع نقشه جدید</button>
+                `;
+                resultPage.style.display = 'flex';
+
+                document.getElementById('restart-map-btn').addEventListener('click', () => {
+                    resultPage.style.display = 'none';
+                    document.querySelector('.map-container').style.display = '';
+                    document.querySelector('.mobile-ui-container').style.display = '';
+                    clearMap();
+                    // Reset download button to original state
+                    const downloadBtn = document.getElementById('download-map');
+                    downloadBtn.className = 'btn btn-primary';
+                    downloadBtn.disabled = true;
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> <span>دانلود نقشه</span>';
+                });
             });
             
             // ذخیره تنظیمات
@@ -1617,6 +1686,7 @@ EOF
                 startWatchingLocation();
                 showToast('تنظیمات ذخیره شد');
                 document.getElementById('settings-modal').style.display = 'none';
+                document.body.classList.remove('modal-open');
             });
             
             // مدیریت لایه‌ها
