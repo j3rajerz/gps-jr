@@ -546,6 +546,34 @@
                 padding: 15px;
             }
         }
+
+        #result-page-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+            z-index: 1999;
+            display: none;
+        }
+
+        #result-page {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border: 2px solid var(--primary-color);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 0 30px var(--glow-color);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -1640,38 +1668,36 @@ EOF
                 
                 this.reset();
                 
-                // Hide the main map interface
-                document.querySelector('.map-container').style.display = 'none';
-                document.querySelector('.mobile-ui-container').style.display = 'none';
-
                 // Create and show a success/download view
+                let backdrop = document.getElementById('result-page-backdrop');
+                if (!backdrop) {
+                    backdrop = document.createElement('div');
+                    backdrop.id = 'result-page-backdrop';
+                    document.body.appendChild(backdrop);
+                }
+
                 let resultPage = document.getElementById('result-page');
                 if (!resultPage) {
                     resultPage = document.createElement('div');
                     resultPage.id = 'result-page';
-                    resultPage.style.cssText = `
-                        position: fixed; top: 0; left: 0; width: 100%; height: 100dvh;
-                        background: var(--dark-bg); z-index: 1000;
-                        display: flex; flex-direction: column; justify-content: center;
-                        align-items: center; text-align: center; padding: 20px;
-                    `;
-                    document.querySelector('.main-content').appendChild(resultPage);
+                    document.body.appendChild(resultPage);
                 }
 
                 resultPage.innerHTML = `
-                    <h2 style="color: var(--primary-color); font-size: 1.8rem; margin-bottom: 20px;">خروجی آماده است</h2>
-                    <p style="margin-bottom: 30px;">نقشه با موفقیت تولید شد. می‌توانید آن را دانلود کنید یا یک نقشه جدید شروع کنید.</p>
-                    <a href="${lastGeneratedDataUrl}" download="نقشه_A4.png" class="btn btn-ready" style="min-width: 220px; margin-bottom: 15px; display: inline-flex; justify-content: center; align-items: center; gap: 10px;">
+                    <h2 style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 15px;">خروجی آماده است</h2>
+                    <p style="margin-bottom: 25px; font-size: 0.9rem;">نقشه با موفقیت تولید شد. می‌توانید آن را دانلود کنید یا یک نقشه جدید شروع کنید.</p>
+                    <a href="${lastGeneratedDataUrl}" download="نقشه_A4.png" class="btn btn-ready" style="width: 100%; margin-bottom: 10px; display: inline-flex; justify-content: center; align-items: center; gap: 10px;">
                         <i class="fas fa-download"></i> <span>دانلود نقشه</span>
                     </a>
-                    <button id="restart-map-btn" class="btn btn-secondary" style="min-width: 220px;">شروع نقشه جدید</button>
+                    <button id="restart-map-btn" class="btn btn-secondary" style="width: 100%;">شروع نقشه جدید</button>
                 `;
+                
+                backdrop.style.display = 'block';
                 resultPage.style.display = 'flex';
 
                 document.getElementById('restart-map-btn').addEventListener('click', () => {
+                    backdrop.style.display = 'none';
                     resultPage.style.display = 'none';
-                    document.querySelector('.map-container').style.display = '';
-                    document.querySelector('.mobile-ui-container').style.display = '';
                     clearMap();
                     // Reset download button to original state
                     const downloadBtn = document.getElementById('download-map');
