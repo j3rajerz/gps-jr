@@ -442,40 +442,56 @@
             overflow: hidden;
         }
         header, footer { display: none; }
-        .container { padding: 0; } /* Remove padding, controls are overlayed */
-        .map-container { height: 100dvh; border-radius: 0; border-width: 0; } /* Full screen map */
+        .container { padding: 0; }
+        .map-container { height: 100dvh; border-radius: 0; border-width: 0; }
         .gps-info { display: none; }
-        .download-container {
+
+        .mobile-ui-container {
             position: fixed;
-            bottom: 100px; /* Above the controls bar */
-            left: 10px;
-            right: 10px;
-            text-align: center;
-            z-index: 1001;
-        }
-        .controls {
-            position: fixed;
-            left: 10px;
-            right: 10px;
             bottom: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 10px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap; /* This will create two rows */
+            justify-content: center;
+            gap: 10px;
             padding: 10px;
-            background: rgba(26, 26, 26, 0.9); /* Semi-transparent background */
+            background: rgba(26, 26, 26, 0.9);
             border-radius: 10px;
             border: 2px solid var(--primary-color);
             box-shadow: 0 0 15px var(--glow-color);
-            display: flex;
-            justify-content: flex-start; /* Start from left for scrolling */
+            width: 100%;
+            position: static; /* Override sticky positioning */
         }
         .controls .btn {
             width: 64px; height: 64px; padding: 0; border-radius: 50%; display: inline-flex;
             align-items: center; justify-content: center;
-            flex-shrink: 0; /* Prevent buttons from shrinking */
+            flex-shrink: 0;
         }
         .controls .btn i { font-size: 20px; margin: 0; }
-        .controls .btn span { display: none; }
+        .controls .btn span { display: none; } /* Hide text on mobile */
+
+        #download-map-container {
+            width: 100%;
+            text-align: center;
+        }
+
+        #download-map {
+            width: auto; /* Let it size by content */
+            padding: 10px 20px; /* Smaller padding */
+            font-size: 1rem; /* Smaller font */
+        }
+        #download-map span {
+            display: inline; /* Show text for download button */
+        }
         
         #pwa-install {
             position: fixed;
@@ -529,23 +545,24 @@
                 </button>
             </div>
             
-            <div class="download-container">
-                <button id="download-map" class="btn btn-primary" disabled style="width: 80%; max-width: 400px; padding: 15px; font-size: 1.1rem;"><i class="fas fa-download"></i> <span>دانلود نقشه</span></button>
-            </div>
-            
-            <div class="controls">
-                <button id="new-map" class="btn btn-secondary btn-3d" title="نقشه جدید"><i class="fas fa-plus"></i> <span>نقشه جدید</span></button>
-                <button id="capture-point" class="btn btn-primary btn-3d" title="برداشت نقطه"><i class="fas fa-map-marker-alt"></i> <span>برداشت نقطه</span></button>
-                <button id="draw-mode" class="btn btn-secondary btn-3d" title="ترسیم"><i class="fas fa-pencil-alt"></i> <span>ترسیم</span></button>
-                <button id="select-rect" class="btn btn-secondary btn-3d" title="انتخاب"><i class="fas fa-vector-square"></i> <span>انتخاب</span></button>
-                <button id="move-last" class="btn btn-secondary btn-3d" title="جابجایی انتها"><i class="fas fa-arrows-alt"></i> <span>جابجایی انتها</span></button>
-                <button id="delete-point" class="btn btn-secondary btn-3d" title="حذف نقطه"><i class="fas fa-trash"></i> <span>حذف نقطه</span></button>
-                <button id="finish-polygon" class="btn btn-secondary" disabled title="اتمام"><i class="fas fa-check-circle"></i> <span>اتمام</span></button>
-                <button id="review-data" class="btn btn-secondary" disabled title="بررسی"><i class="fas fa-clipboard-check"></i> <span>بررسی</span></button>
-                <button id="export-pdf" class="btn btn-secondary" disabled title="خروجی PDF"><i class="fas fa-file-pdf"></i> <span>خروجی PDF</span></button>
-                <button id="export-kmz" class="btn btn-secondary" disabled title="خروجی KMZ"><i class="fas fa-file-archive"></i> <span>خروجی KMZ</span></button>
-                <button id="export-dxf" class="btn btn-secondary" disabled title="خروجی DXF"><i class="fas fa-file-code"></i> <span>خروجی DXF</span></button>
-                <button id="settings" class="btn btn-secondary" title="تنظیمات"><i class="fas fa-cog"></i> <span>تنظیمات</span></button>
+            <div class="mobile-ui-container">
+                <div class="controls">
+                    <button id="new-map" class="btn btn-secondary btn-3d" title="نقشه جدید"><i class="fas fa-plus"></i> <span>نقشه جدید</span></button>
+                    <button id="capture-point" class="btn btn-primary btn-3d" title="برداشت نقطه"><i class="fas fa-map-marker-alt"></i> <span>برداشت نقطه</span></button>
+                    <button id="draw-mode" class="btn btn-secondary btn-3d" title="ترسیم"><i class="fas fa-pencil-alt"></i> <span>ترسیم</span></button>
+                    <button id="select-rect" class="btn btn-secondary btn-3d" title="انتخاب"><i class="fas fa-vector-square"></i> <span>انتخاب</span></button>
+                    <button id="move-last" class="btn btn-secondary btn-3d" title="جابجایی انتها"><i class="fas fa-arrows-alt"></i> <span>جابجایی انتها</span></button>
+                    <button id="delete-point" class="btn btn-secondary btn-3d" title="حذف نقطه"><i class="fas fa-trash"></i> <span>حذف نقطه</span></button>
+                    <button id="finish-polygon" class="btn btn-secondary" disabled title="اتمام"><i class="fas fa-check-circle"></i> <span>اتمام</span></button>
+                    <button id="review-data" class="btn btn-secondary" disabled title="بررسی"><i class="fas fa-clipboard-check"></i> <span>بررسی</span></button>
+                    <button id="export-pdf" class="btn btn-secondary" disabled title="خروجی PDF"><i class="fas fa-file-pdf"></i> <span>خروجی PDF</span></button>
+                    <button id="export-kmz" class="btn btn-secondary" disabled title="خروجی KMZ"><i class="fas fa-file-archive"></i> <span>خروجی KMZ</span></button>
+                    <button id="export-dxf" class="btn btn-secondary" disabled title="خروجی DXF"><i class="fas fa-file-code"></i> <span>خروجی DXF</span></button>
+                    <button id="settings" class="btn btn-secondary" title="تنظیمات"><i class="fas fa-cog"></i> <span>تنظیمات</span></button>
+                </div>
+                <div id="download-map-container">
+                    <button id="download-map" class="btn btn-primary" disabled><i class="fas fa-download"></i> <span>دانلود نقشه</span></button>
+                </div>
             </div>
             
             <div class="gps-info">
