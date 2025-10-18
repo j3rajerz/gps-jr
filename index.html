@@ -1658,17 +1658,13 @@ EOF
             });
             
             // ثبت فرم اطلاعات
-            document.getElementById('map-data-form').addEventListener('submit', async function(e) {
+            document.getElementById('map-data-form').addEventListener('submit', function(e) {
                 e.preventDefault();
+                const form = this;
                 document.getElementById('data-modal').style.display = 'none';
                 document.body.classList.remove('modal-open');
                 
-                showToast('در حال تولید خروجی، لطفا صبر کنید...');
-                await generatePrintView();
-                
-                this.reset();
-                
-                // Create and show a success/download view
+                // Create and show the result card immediately with a loading state
                 let backdrop = document.getElementById('result-page-backdrop');
                 if (!backdrop) {
                     backdrop = document.createElement('div');
@@ -1684,10 +1680,10 @@ EOF
                 }
 
                 resultPage.innerHTML = `
-                    <h2 style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 15px;">خروجی آماده است</h2>
-                    <p style="margin-bottom: 25px; font-size: 0.9rem;">نقشه با موفقیت تولید شد. می‌توانید آن را دانلود کنید یا یک نقشه جدید شروع کنید.</p>
-                    <a href="${lastGeneratedDataUrl}" download="نقشه_A4.png" class="btn btn-ready" style="width: 100%; margin-bottom: 10px; display: inline-flex; justify-content: center; align-items: center; gap: 10px;">
-                        <i class="fas fa-download"></i> <span>دانلود نقشه</span>
+                    <h2 style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 15px;">در حال تولید خروجی...</h2>
+                    <p style="margin-bottom: 25px; font-size: 0.9rem;">لطفا چند لحظه صبر کنید. نقشه در حال آماده‌سازی برای دانلود است.</p>
+                    <a id="result-download-link" class="btn btn-secondary" style="width: 100%; margin-bottom: 10px; display: inline-flex; justify-content: center; align-items: center; gap: 10px; opacity: 0.5; cursor: not-allowed;">
+                        <i class="fas fa-spinner fa-spin"></i> <span>منتظر بمانید</span>
                     </a>
                     <button id="restart-map-btn" class="btn btn-secondary" style="width: 100%;">شروع نقشه جدید</button>
                 `;
@@ -1699,12 +1695,35 @@ EOF
                     backdrop.style.display = 'none';
                     resultPage.style.display = 'none';
                     clearMap();
-                    // Reset download button to original state
                     const downloadBtn = document.getElementById('download-map');
                     downloadBtn.className = 'btn btn-primary';
                     downloadBtn.disabled = true;
                     downloadBtn.innerHTML = '<i class="fas fa-download"></i> <span>دانلود نقشه</span>';
                 });
+
+                // Now, generate the print view in the background
+                setTimeout(async () => {
+                    await generatePrintView();
+                    form.reset();
+
+                    // Update the result card when generation is complete
+                    const downloadLink = document.getElementById('result-download-link');
+                    if (lastGeneratedDataUrl) {
+                        resultPage.querySelector('h2').textContent = 'خروجی آماده است';
+                        resultPage.querySelector('p').textContent = 'نقشه با موفقیت تولید شد. می‌توانید آن را دانلود کنید یا یک نقشه جدید شروع کنید.';
+                        downloadLink.href = lastGeneratedDataUrl;
+                        downloadLink.download = 'نقشه_A4.png';
+                        downloadLink.classList.remove('btn-secondary');
+                        downloadLink.classList.add('btn-ready');
+                        downloadLink.style.opacity = '1';
+                        downloadLink.style.cursor = 'pointer';
+                        downloadLink.innerHTML = '<i class="fas fa-download"></i> <span>دانلود نقشه</span>';
+                    } else {
+                        resultPage.querySelector('h2').textContent = 'خطا در تولید خروجی';
+                        resultPage.querySelector('p').textContent = 'متاسفانه در تولید نقشه مشکلی پیش آمد. لطفا دوباره تلاش کنید.';
+                        downloadLink.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>ناموفق</span>';
+                    }
+                }, 100); // Small timeout to allow UI to update before blocking task
             });
             
             // ذخیره تنظیمات
