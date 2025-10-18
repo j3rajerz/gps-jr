@@ -1,0 +1,17 @@
+{
+  "name": "نرم افزار نقشه برداری GPS",
+  "short_name": "GPS Mapper",
+  "description": "برنامه نقشه برداری با قابلیت برداشت نقاط و تولید خروجی",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#ff7700",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
