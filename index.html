@@ -459,8 +459,8 @@
         }
 
         .controls {
-            display: flex;
-            flex-wrap: wrap; /* This will create two rows */
+            display: none; /* Hide by default */
+            flex-wrap: wrap; 
             justify-content: center;
             gap: 10px;
             padding: 10px;
@@ -469,7 +469,10 @@
             border: 2px solid var(--primary-color);
             box-shadow: 0 0 15px var(--glow-color);
             width: 100%;
-            position: static; /* Override sticky positioning */
+            position: static; 
+        }
+        .controls.visible {
+            display: flex; /* Class to show the controls */
         }
         .controls .btn {
             width: 64px; height: 64px; padding: 0; border-radius: 50%; display: inline-flex;
@@ -491,6 +494,11 @@
         }
         #download-map span {
             display: inline; /* Show text for download button */
+        }
+        #menu-toggle-btn {
+            width: auto;
+            padding: 10px 20px;
+            font-size: 1rem;
         }
         
         #pwa-install {
@@ -560,6 +568,7 @@
                     <button id="export-dxf" class="btn btn-secondary" disabled title="خروجی DXF"><i class="fas fa-file-code"></i> <span>خروجی DXF</span></button>
                     <button id="settings" class="btn btn-secondary" title="تنظیمات"><i class="fas fa-cog"></i> <span>تنظیمات</span></button>
                 </div>
+                <button id="menu-toggle-btn" class="btn btn-primary">منو</button>
                 <div id="download-map-container">
                     <button id="download-map" class="btn btn-primary" disabled><i class="fas fa-download"></i> <span>دانلود نقشه</span></button>
                 </div>
@@ -1459,6 +1468,28 @@ EOF
         
         // تنظیم رویدادها برای دکمه‌ها
         function setupEventListeners() {
+            // Menu Toggle Logic
+            const menuToggleBtn = document.getElementById('menu-toggle-btn');
+            const controls = document.querySelector('.controls');
+            menuToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent click from bubbling to document
+                controls.classList.toggle('visible');
+            });
+
+            // Hide menu when a control button is clicked
+            controls.addEventListener('click', (e) => {
+                if (e.target.closest('.btn')) {
+                    controls.classList.remove('visible');
+                }
+            });
+
+            // Hide menu when clicking outside on the map
+            map.on('click', () => {
+                if (controls.classList.contains('visible')) {
+                    controls.classList.remove('visible');
+                }
+            });
+
             // دکمه نقشه جدید
             document.getElementById('new-map').addEventListener('click', function() {
                 clearMap();
